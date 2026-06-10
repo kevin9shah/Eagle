@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+watchdog
+chromadb
+sentence-transformers
+ollama
+pydantic
+pypdf
