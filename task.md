@@ -2,11 +2,13 @@
 
 ## Phase 1: Local AI & Watchdog Setup (The Engine)
 - [x] Initialize Python environment and `requirements.txt` (`fastapi`, `watchdog`, `chromadb`, `sentence-transformers`, `ollama`)
-- [ ] Install Ollama locally and pull models (e.g., `llama3` for text, `nomic-embed-text` for embeddings)
-- [ ] Implement `app/core/llm.py` to communicate with the local Ollama API (Zero cloud dependency)
-- [ ] Implement VectorDB wrapper (`app/rag/vector_db.py`) using ChromaDB
-- [ ] Build the Directory Watcher (`app/memory/watchdog.py`) to monitor a chosen root folder
-- [ ] Implement auto-ingestion: When a new file is detected by Watchdog, parse, chunk, and embed it into ChromaDB
+- [x] Install Ollama locally and pull models (e.g., `llama3` for text, `nomic-embed-text` for embeddings)
+- [x] Implement `app/core/llm.py` to communicate with the local Ollama API (Zero cloud dependency)
+- [x] Implement VectorDB wrapper (`app/rag/vector_db.py`) using ChromaDB
+- [x] Build the Directory Watcher (`app/memory/watchdog.py`) to monitor a chosen root folder
+- [x] Implement auto-ingestion: When a new file is detected by Watchdog, parse, chunk, and embed it into ChromaDB
+- [x] Prevent duplicate entries: Delete existing chunks in ChromaDB by `source` metadata before inserting new ones
+- [x] Initial Boot Scan: Traverse the watched directory and ingest all existing PDFs upon watcher startup
 
 ## Phase 2: Local Agent Pipeline (The Brain)
 - [ ] Create `app/agents/base.py` interface

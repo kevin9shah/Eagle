@@ -58,3 +58,46 @@ You cannot easily sell a Python script. You must package it into a standalone ex
 - Build a React frontend.
 - Package the React frontend and Python backend into a single double-clickable Desktop App using Tauri/Electron.
 - Integrate Lemon Squeezy for license key validation.
+
+---
+
+## 5. 🗄️ ChromaDB Integration Plan
+
+To fulfill the zero-data-leak and privacy-first guarantee, we will implement ChromaDB entirely locally using `chromadb.PersistentClient`.
+
+### Component Details
+#### `app/core/vector_db.py` (New File)
+We will create a `VectorDBClient` wrapper class.
+- **Storage Path**: Data will be saved locally to `data/chromadb/` using `chromadb.PersistentClient(path="./data/chromadb")`.
+- **Embeddings**: We will use Chroma's built-in `SentenceTransformerEmbeddingFunction` with a local model like `nomic-embed-text` or `all-MiniLM-L6-v2`. This ensures text chunk embeddings are generated locally on the user's machine.
+- **Methods**:
+  - `add_chunks(collection_name, chunks, metadatas, ids)`: For the watchdog to insert new document chunks.
+  - `query(collection_name, query_text, n_results)`: For the retrieval agent to search relevant chunks.
+
+### User Review Required
+> [!IMPORTANT]
+> - Do you prefer putting the `VectorDBClient` in `app/core/vector_db.py` or `app/retrieval/vector_db.py`? (The task list mentioned `app/rag/vector_db.py`, but that directory doesn't exist. I recommend `app/core/` for the shared client and `app/retrieval/` for the actual RAG search logic).
+> - Would you like me to go ahead and implement the `vector_db.py` wrapper now?
+
+---
+
+## 6. 🏗️ Auto-Ingestion Architecture Fix
+
+To resolve the architectural flaws in the auto-ingestion pipeline (preventing duplicates and ensuring an initial scan), we will implement the following two fixes:
+
+### 1. Initial Boot Scan (`app/memory/file_watcher.py`)
+Before the watchdog observer starts listening for real-time events, the `watch()` function will iterate through the provided directory using `os.walk` and call `ingest_file()` on every `.pdf` it finds. This guarantees the database is fully up-to-date before live watching begins.
+
+### 2. Duplicate Prevention via Metadata Purging (`app/ingestion/vector_db.py`)
+Currently, modifying a file appends new chunks, leading to duplicates. Because `PyPDFLoader` automatically adds a `{"source": "absolute/path/to/file.pdf"}` tag to every chunk's metadata, we can perform a clean overwrite.
+Inside `ingest_file()`, before we embed and add the new documents, we will fetch the raw Chroma collection and delete any existing chunks associated with that file:
+```python
+# Purge old chunks for this file
+collection = chroma_client.get_or_create_collection(collection_name)
+collection.delete(where={"source": file_path})
+```
+This ensures that if a file is modified (or re-scanned on boot), its old embeddings are completely wiped out before the fresh ones are inserted, guaranteeing zero duplicates.
+
+### User Review Required
+> [!IMPORTANT]
+> Since you have been implementing the code yourself recently, would you like me to go ahead and apply these architecture fixes directly to your `vector_db.py` and `file_watcher.py` files, or would you prefer me to just give you the step-by-step code snippets again?

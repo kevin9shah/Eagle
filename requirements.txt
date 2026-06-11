@@ -6,3 +6,5 @@ sentence-transformers
 ollama
 pydantic
 pypdf
+langchain-chroma
+langchain-community
